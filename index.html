@@ -5,7 +5,20 @@
 <base href="./">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SONORA — Listen deeper.</title>
-<meta name="description" content="SONORA is a home for people who love music: discovery, artists, stories, sessions, radio, charts and culture.">
+<meta name="description" content="SONORA is a self-hosted music player: your own library, artists, albums, playlists and listening stats — nothing leaves your device.">
+<meta name="theme-color" content="#D9A441">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="index,follow">
+<meta property="og:site_name" content="SONORA">
+<meta property="og:title" content="SONORA — Listen deeper.">
+<meta property="og:description" content="A self-hosted music player on GitHub Pages: your library, artists, playlists and local listening stats.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SONORA — Listen deeper.">
+<meta name="twitter:description" content="A self-hosted music player: your library, artists, playlists and local listening stats.">
+<link rel="canonical" href="https://dragon-aj-1.github.io/sonora/">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A0908'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23D9A441' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='3.2' fill='%23D9A441'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css">
@@ -19,6 +32,11 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/fixes.css">
 <link rel="stylesheet" href="css/eq.css">
+<link rel="stylesheet" href="css/share.css">
+<style>
+.why{display:block;font-size:11px;color:var(--mut);margin-top:6px;line-height:1.35}
+.acard .im img,.ar-hero .im img{background:linear-gradient(135deg,#1a1612,#2a241c);object-fit:cover}
+</style>
 </head>
 <body>
 <a class="skip" href="#view">Skip to content</a>
@@ -34,9 +52,31 @@
 <div id="searchOv" role="dialog" aria-modal="true" aria-label="Search"></div>
 <div id="modal" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"><i></i><span id="toastTx"></span></div>
+<button type="button" id="shareFab" data-share="open" title="Share">Share</button>
 <script src="js/data.js"></script>
+<script src="js/covers.js"></script>
 <script src="js/eq.js"></script>
 <script src="js/id3.js"></script>
 <script src="js/app.js"></script>
+<script src="js/deeplink.js"></script>
+<script src="js/share.js"></script>
+<script src="js/foryou.js"></script>
+<script src="js/seo.js"></script>
+<script src="js/phase-b.js"></script>
+<script src="js/polish.js"></script>
+<script>
+(function(){
+  /* Refresh For You picks after the user plays something */
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest && e.target.closest('[data-a="like"], [data-a="play-ref"], [data-a="play-album"]');
+    if(t && window.SONORA_FORYOU) setTimeout(function(){ SONORA_FORYOU.refresh(); }, 400);
+  });
+})();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>

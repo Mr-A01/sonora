@@ -73,7 +73,6 @@ a{color:inherit;text-decoration:none}
 [data-rv]{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.19,.7,.22,1);transition-delay:var(--d,0s)}
 [data-rv].in{opacity:1;transform:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes pulseDot{0%{box-shadow:0 0 0 0 var(--acc-soft)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
 @keyframes mq{to{transform:translateX(-50%)}}
 /* hero */
 .hero{min-height:94svh;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;padding-top:100px}
@@ -126,40 +125,6 @@ a{color:inherit;text-decoration:none}
 .chip{border:1px solid var(--line2);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:500;color:var(--ink2);transition:all .2s}
 .chip:hover{border-color:var(--ink2);color:var(--ink)}
 .chip.on{background:var(--acc);border-color:var(--acc);color:#0A0908;font-weight:600}
-.scard{width:min(80vw,340px);text-align:left}
-.scard .im{border-radius:12px;overflow:hidden;aspect-ratio:4/5;position:relative}
-.scard img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.19,.7,.22,1)}
-.scard:hover img{transform:scale(1.05)}
-.scard .cat{position:absolute;top:12px;left:12px;background:rgba(10,9,8,.72);backdrop-filter:blur(6px);border-radius:999px;padding:5px 12px;font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;font-weight:500}
-.scard .t{font-family:var(--serif);font-size:20px;line-height:1.25;margin-top:14px}
-.scard:hover .t{font-style:italic;color:var(--acc)}
-.scard .m{font-size:11.5px;color:var(--mut);margin-top:8px}
-.bigstory{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,4vw,70px);align-items:center}
-@media(max-width:900px){.bigstory{grid-template-columns:1fr}}
-.bigstory .im{border-radius:14px;overflow:hidden;position:relative}
-.bigstory img{aspect-ratio:4/3;width:100%;object-fit:cover}
-.bigstory h3{font-family:var(--serif);font-size:clamp(32px,4.4vw,60px);line-height:1.04;font-weight:400}
-.bigstory h3 em{color:var(--acc)}
-.bigstory p{color:var(--ink2);margin-top:18px;font-size:15px;max-width:520px}
-.bigstory blockquote{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);border-left:2px solid var(--acc);padding-left:20px;margin:24px 0;max-width:460px}
-.stcard{width:210px;border:1px solid var(--line);border-radius:14px;padding:20px;text-align:left;transition:border-color .25s,background .25s;position:relative}
-.stcard:hover{border-color:var(--line2);background:var(--panel)}
-.stcard.on{border-color:var(--acc)}
-.stcard .dot{width:8px;height:8px;border-radius:50%;background:var(--sc);box-shadow:0 0 12px var(--sc)}
-.stcard.on .dot{animation:pulseDot 2s infinite}
-.stcard .n{font-family:var(--serif);font-size:22px;margin-top:16px}
-.stcard .tg{font-size:12px;color:var(--ink2);margin-top:4px}
-.sched{border-top:1px solid var(--line)}
-.sched .r{display:grid;grid-template-columns:70px 1fr auto;gap:18px;padding:16px 4px;border-bottom:1px solid var(--line);align-items:baseline}
-.sched .t{font-family:var(--mono);color:var(--acc);font-size:13px}
-.evcard{display:grid;grid-template-columns:110px 1fr auto;gap:20px;align-items:center;padding:22px 0;border-top:1px solid var(--line);width:100%;text-align:left}
-.evcard:last-child{border-bottom:1px solid var(--line)}
-.evcard .d{text-align:center}
-.evcard .dd{font-family:var(--serif);font-size:30px;line-height:1}
-.evcard .mm{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--acc);font-weight:500}
-.evcard .t{font-family:var(--serif);font-size:clamp(18px,2.2vw,26px)}
-.evcard .s{font-size:12px;color:var(--ink2);margin-top:4px}
-@media(max-width:700px){.evcard{grid-template-columns:70px 1fr;gap:14px}.evcard .btn{grid-column:2}}
 .ar-hero{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,4vw,70px);align-items:end;min-height:70svh;padding-top:110px}
 @media(max-width:900px){.ar-hero{grid-template-columns:1fr}}
 .ar-hero .im{border-radius:14px;overflow:hidden}

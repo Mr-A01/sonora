@@ -1,10 +1,11 @@
 # SONORA
 
 > **Listen deeper.** A fully static, dark-themed music web app — gold accent, serif/mono/sans
-> typography, working audio playback, radio, sessions, library, stats, and a professional
-> 10-band equalizer. Every artist, album and story is fictional demo data.
+> typography, working audio playback, playlists, library, local listening stats, and a
+> 10-band equalizer. Your library is real: it is generated from your own audio files' ID3 tags.
 
 No build step, no framework, no server-side code. Plain HTML + CSS + ES5-ish JavaScript.
+Runs exclusively on **GitHub Pages**.
 
 ---
 
@@ -30,58 +31,68 @@ npx serve .
 2. **Settings → Pages → Build and deployment**
 3. Source: **Deploy from a branch**
 4. Branch: **`main` / `/ (root)`** → **Save**
-5. The site appears at `https://<user>.<repo>.github.io/<repo>/` within a minute.
+5. The site appears at `https://<user>.github.io/<repo>/` within a minute.
 
 Notes:
 - An empty `.nojekyll` file is included so GitHub skips Jekyll processing
   (keeps files/directories starting with `_` and everything under `/audio` untouched).
 - A ready-made workflow also exists at `.github/workflows/static.yml` — if you use it,
   switch Pages source to **GitHub Actions** instead of “Deploy from a branch”.
-- Deep links are not routed (client-side `S.page` + `S.param` only) — unknown URLs boot to home.
+- Deep links are client-side (`#/page/param`) — unknown URLs boot to home.
+
+---
+
+## PWA
+
+- `manifest.webmanifest` + theme-color for “Add to Home Screen”.
+- Service Worker (`sw.js`) caches static assets and keeps the app usable offline
+  for already-visited pages. Music files themselves are still network-fetched.
 
 ---
 
 ## How to add music
 
-Three steps, no code editing:
+Everything is generated — **no hand-editing of JSON**:
 
-1. **Drop an `.mp3` into `/audio/`**
-2. **Add ONE entry to `audio/manifest.json`:**
+1. **Drop an audio file into `/audio/`** (`.mp3`, `.m4a`, `.aac`, `.ogg`, `.oga`,
+   `.opus`, `.flac`, `.wav`)
+2. **Run the script:**
 
-```json
-{
-  "id": "my-song-01",
-  "file": "audio/my-song-01.mp3",
-  "title": "My Song",
-  "artist": "My Artist",
-  "album": "My Album",
-  "year": 2026,
-  "genre": "Electronic",
-  "duration": "4:12",
-  "cover": "audio/covers/my-song-01.jpg"
-}
-```
+   ```bash
+   python .github/scripts/add_music.py  # or: add the --check flag for a dry run
+   ```
 
-3. **Commit + push** — the app merges the manifest with the built-in demo data,
-   auto-creating artist/album entries when needed.
+3. **Commit + push.**
 
-- Required: `id`, `file`, `title`, `artist`, `album`.
-- Optional: `year`, `genre`, `duration`, `cover`.
-- If `cover` is omitted (or the image 404s), **ID3 tags embedded in the mp3 are read
-  automatically** — title, artist, album *and* embedded cover art (`js/id3.js`, dependency-free,
-  ID3v2.3 / ID3v2.4). The results are cached in `localStorage`.
-- If `audio/manifest.json` is missing entirely, the app silently uses only the built-in demo data.
-- Bundled demo audio: `audio/track1.mp3` … `track8.mp3` (SoundHelix, soundhelix.com) is used as
-  the playback fallback for any track file that doesn’t exist.
+The script (stdlib only — no pip installs) does everything:
 
-Demo data itself (artists, albums, playlists, stories, events, stations…) lives in **`js/data.js`**
-— edit music data there; **`js/app.js`** contains only logic.
+- reads **ID3 tags** from the file itself: title, artist, album, year, genre
+- **extracts the embedded cover art** into `audio/covers/<id>.jpg|.png`
+- measures duration (ffprobe if available, otherwise MPEG-frame fallback)
+- rebuilds `audio/manifest.json`, preserving fields it does not own
+  (`sha256`, `telegram_file_unique_id`, `source`, `imported_at`, `added_at`)
+- prunes orphaned cover images
+
+The app merges the manifest at load and auto-creates artist/album entries, so playlists,
+charts and stats all update automatically. If a file 404s at playback time,
+the player shows the missing path instead of failing silently.
+
+### Via GitHub Actions
+
+`.github/workflows/add-music.yml` runs automatically whenever anything under `/audio/`
+is pushed to `main` (or manually via **workflow_dispatch**): it executes
+`python .github/scripts/add_music.py --check` and, if the manifest drifted, commits the regenerated
+`audio/manifest.json` + covers back to the repo — so an upload made straight through
+the GitHub web UI still ends up in the manifest. The website itself needs no server.
+
+---
 
 ## Equalizer
 
-Open the full player (click the track bar or press `F`) → **EQ** button in the top bar (or press
-`E`). 10 bands (31 Hz – 16 kHz, ±15 dB), preamp, 13 presets, custom presets, live response curve,
-ENABLE/BYPASS. Changes persist in `sonora-state-v2`.
+Open the full player (click the track bar or press `F`) → **EQ** button (or press `E`).
+10 bands (31 Hz – 16 kHz, ±15 dB), preamp, 13 presets, custom presets, live response curve,
+ENABLE/BYPASS. Visual style is fully unified with the main dark + gold theme.
+Changes persist in `sonora-state-v2`.
 
 ## Keyboard shortcuts
 
@@ -91,34 +102,37 @@ ENABLE/BYPASS. Changes persist in `sonora-state-v2`.
 
 ## Persistence & reset
 
-Everything (likes, follows, saved albums/playlists, history, recents, player position, volume,
-shuffle/repeat, EQ, last tabs) lives under the single `localStorage` key **`sonora-state-v2`**.
-Old `sonora-state` / `sonora-vol` keys are migrated automatically, then deleted.
-Use **Reset app** in the footer to clear it (`window.clearState()`).
-
-## Browser support
-
-- **Web Audio (EQ + live waveform)** — Chrome/Edge 66+, Firefox 75+, Safari 14.1+.
-  `AudioContext` is created on the first user gesture; before that, playback and the
-  visualizer fall back to the plain `<audio>` element and a decorative sine wave.
-- **ID3v2 tag reading** — all evergreen browsers (pure JS, streams only the tag bytes).
-- **Manifest fetch** — browsers with `fetch` (all evergreen). Missing manifest = graceful no-op.
-- Older browsers: everything degrades — playback still works via the `<audio>` element.
+Everything lives under the single `localStorage` key **`sonora-state-v2`**.
+Nothing ever leaves your browser. Use **Reset app** in the footer to clear it
+(`window.clearState()`).
 
 ## Structure
 
 ```
-index.html            single page, <base href="./"> for GitHub Pages
+index.html            single page shell + PWA meta
+manifest.webmanifest  web app manifest
+sw.js                 service worker (precache + runtime cache)
 css/styles.css        theme, layout, components
-css/fixes.css         fixes/additions (no new rules required by EQ)
-css/eq.css            equalizer panel only
-js/data.js            ALL music/editorial data + SONORA_DATA export
-js/eq.js              Web Audio EQ engine + panel UI  (window.EQ)
-js/id3.js             dependency-free ID3v2 reader     (window.ID3)
-js/app.js             app logic, state, routing, persistence
-audio/manifest.json   drop-in music manifest
-audio/*.mp3           fallback demo audio
+css/fixes.css         fixes / hardening
+css/eq.css            equalizer panel
+css/share.css         share dialog
+js/data.js            data layer (empty until the manifest loads) + safe fallbacks
+js/app.js             app logic, state, routing, persistence, pages
+js/deeplink.js        hash-route deep links (shareable URLs)
+js/covers.js          shared fallback artwork
+js/eq.js              Web Audio EQ engine + panel UI
+js/id3.js             ID3v2 reader (cover art fallback at runtime)
+js/share.js           now-playing / library share dialog + JSON export-import
+js/foryou.js          personal picks (recently played, favourites, genres)
+js/seo.js             per-page document titles + meta
+js/polish.js          stats helpers + small UI polish
+js/phase-b.js         discover/charts refinements
+.github/scripts/add_music.py  scans /audio → regenerates manifest + covers
+audio/manifest.json   generated by add_music.py — do not edit by hand
+audio/covers/         cover art extracted from your files' ID3 tags
+.github/workflows/    add-music.yml (manifest rebuild) + static.yml (Pages deploy)
 .nojekyll             skip Jekyll on GitHub Pages
 ```
 
-All artists, releases, events and data in SONORA are invented for demo purposes.
+All artwork and metadata come from the audio files you add — SONORA ships with no
+fictional artists, albums or editorial content.

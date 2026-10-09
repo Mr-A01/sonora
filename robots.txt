@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dragon-aj-1.github.io/sonora/sitemap.xml

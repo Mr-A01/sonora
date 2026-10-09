@@ -1,0 +1,19 @@
+{
+  "name": "SONORA",
+  "short_name": "SONORA",
+  "description": "Listen deeper. A dark-themed music web app with equalizer, library and listening stats.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0A0908",
+  "theme_color": "#D9A441",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A0908'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23D9A441' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='3.2' fill='%23D9A441'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"]
+}
