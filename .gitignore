@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.dev.vars.example
+__pycache__/
+*.pyc
+.DS_Store
+.DS_Store?
+*.sqlite
+*.sqlite3
+dist/

@@ -1,0 +1,388 @@
+/* ============================================================
+   SONORA — Fixes & Hardening
+   Progress bars, mini player, mobile, a11y
+   ============================================================ */
+
+/* Stronger hero gradient for title legibility */
+.hero .bg::after {
+  background: linear-gradient(
+    to top,
+    var(--bg) 0%,
+    rgba(10, 9, 8, 0.35) 40%,
+    rgba(10, 9, 8, 0.65) 100%
+  ) !important;
+}
+
+.hero h1 {
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Seekable progress */
+#miniProg,
+#pProg {
+  cursor: pointer;
+  position: relative;
+}
+#miniProg:hover #miniBar,
+#pProg:hover #pBar {
+  filter: brightness(1.15);
+}
+
+/* Mini player always above content, below full player */
+#mini {
+  z-index: 180;
+}
+#player {
+  z-index: 220;
+}
+#searchOv,
+#modal {
+  z-index: 240;
+}
+#toast {
+  z-index: 260;
+}
+
+/* Mobile bottom nav spacing when mini is open */
+#mini.on ~ #mnav,
+body:has(#mini.on) #mnav {
+  /* fallback: body padding handled by mini height */
+}
+
+@media (max-width: 800px) {
+  .mgrid > * {
+    grid-column: span 3 !important;
+  }
+  .bigstory {
+    grid-template-columns: 1fr !important;
+  }
+  .nav-c {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .mgrid > * {
+    grid-column: span 6 !important;
+  }
+  .acard {
+    width: 160px;
+  }
+}
+
+/* Focus */
+.chip:focus-visible,
+.ibtn:focus-visible,
+.trow:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* Safe area */
+@supports (padding: max(0px)) {
+  #nav,
+  .wrap {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  #mnav,
+  #mini {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #intro .w span,
+  .tick-in,
+  [data-rv] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+
+/* Track rows are playable */
+.trow {
+  cursor: pointer;
+}
+.trow .acts {
+  position: relative;
+  z-index: 2;
+}
+
+/* Mini player + mobile nav stack */
+#mini.on {
+  bottom: 0;
+}
+@media (max-width: 1180px) {
+  #mnav {
+    display: flex !important;
+  }
+  #mini.on {
+    bottom: 56px;
+  }
+  body {
+    padding-bottom: 56px;
+  }
+  body:has(#mini.on) {
+    padding-bottom: calc(56px + 72px);
+  }
+  #foot {
+    padding-bottom: 80px;
+  }
+}
+
+/* Album tracklist + credits stack on small screens */
+.al-body {
+  grid-template-columns: 1fr !important;
+}
+@media (min-width: 901px) {
+  .al-body {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important;
+  }
+}
+
+/* Full player controls safe area */
+#player .pin {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+/* Playing row accent */
+.trow.playing .tt {
+  color: var(--acc);
+}
+.trow.playing .n {
+  color: var(--acc);
+}
+
+/* Seek bars taller hit area */
+#miniProg {
+  height: 4px !important;
+  top: -3px !important;
+}
+#miniProg #miniBar {
+  height: 100%;
+}
+#pProg {
+  min-height: 4px;
+}
+
+/* Footer buttons as links look */
+footer button {
+  display: block;
+  text-align: left;
+  color: var(--ink2);
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+footer button:hover {
+  color: var(--acc);
+}
+
+/* Album card structure (div + nested buttons) */
+.acard .im {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+  aspect-ratio: 1/1;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+.acard .im img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.1s cubic-bezier(0.19, 0.7, 0.22, 1);
+}
+.acard:hover .im img {
+  transform: scale(1.05);
+}
+.acard .pb {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--acc);
+  color: #0a0908;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+.acard:hover .pb {
+  opacity: 1;
+  transform: none;
+}
+
+.acard .im-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.acard .pb {
+  z-index: 3 !important;
+}
+.acard .t {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.acard .t:hover {
+  color: var(--acc);
+}
+
+
+/* ===== Album cards: no overlapping titles ===== */
+.acard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+.acard-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  min-width: 0;
+}
+.acard-meta .t {
+  display: block;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.acard-meta .t:hover {
+  color: var(--acc);
+}
+.acard-meta .s {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink2);
+  margin: 0 !important;
+}
+.acard-meta .g {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin: 2px 0 0 !important;
+  line-height: 1.4;
+}
+.mgrid .acard {
+  width: 100%;
+}
+
+/* ===== Stories grid ===== */
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(18px, 2.5vw, 28px);
+}
+.scard {
+  width: 100% !important;
+  max-width: none;
+  position: relative;
+}
+.scard-hit {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.scard .im {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/5;
+  position: relative;
+  background: var(--panel);
+}
+.scard .t {
+  display: block;
+  font-family: var(--serif);
+  font-size: clamp(17px, 1.6vw, 20px);
+  line-height: 1.3;
+  margin-top: 14px;
+  white-space: normal;
+}
+.scard .m {
+  display: block;
+  font-size: 11.5px;
+  color: var(--mut);
+  margin-top: 8px;
+}
+.scard:hover .t {
+  font-style: italic;
+  color: var(--acc);
+}
+
+/* Story article page */
+.prose figure {
+  margin: 2em 0;
+}
+.prose figcaption {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-top: 10px;
+}
+.page-head h1 {
+  position: relative;
+  z-index: 1;
+}
+
+/* Player queue list */
+#player .trow {
+  cursor: pointer;
+}

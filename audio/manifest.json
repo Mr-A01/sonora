@@ -1,0 +1,9 @@
+{
+  "_readme": [
+    "SONORA public catalog. Starts empty by design.",
+    "Tracks are published by the Sonora Cloud worker (integrations/sonora-cloud) into D1",
+    "and served by GET /api/manifest.json. This file stays empty unless you deliberately",
+    "hand-manage a static library."
+  ],
+  "tracks": []
+}
