@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonora Cloud — Admin</title>
+<style>
+:root{--bg:#0A0908;--panel:#141210;--line:#2A251F;--fg:#EDE6DA;--muted:#9A8F7E;--gold:#D9A441;--red:#E06A5F;--green:#7FA98A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui,sans-serif}
+header{padding:16px 24px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center}
+header h1{font-size:15px;margin:0;letter-spacing:.12em;text-transform:uppercase}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:none;border:1px solid transparent;color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font:inherit}
+nav button[aria-current="page"]{border-color:var(--line);color:var(--fg);background:var(--panel)}
+main{padding:24px;max-width:1100px;margin:0 auto}
+section{display:none}section.active{display:block}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:7px 9px;font:inherit;width:100%}
+button.act{background:var(--panel);border:1px solid var(--line);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer;font:inherit}
+button.act:hover{border-color:var(--gold)}
+button.danger{border-color:#5a2a26;color:var(--red)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.stat b{font-size:22px;display:block}
+.muted{color:var(--muted)}
+.err{color:var(--red)}
+.ok{color:var(--green)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+textarea{min-height:120px;font-family:ui-monospace,monospace}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;max-width:640px;width:92vw}
+dialog::backdrop{background:#000a}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sonora Cloud</h1>
+  <nav id="nav" hidden>
+    <button data-view="dashboard" aria-current="page">Dashboard</button>
+    <button data-view="tracks">Tracks</button>
+    <button data-view="sources">Sources</button>
+    <button data-view="dropbox">Dropbox</button>
+    <button data-view="errors">Errors</button>
+    <button data-view="health">Health</button>
+    <button id="logout">Sign out</button>
+  </nav>
+</header>
+<main>
+  <section id="loginView">
+    <div class="card" style="max-width:420px">
+      <h2>Sign in</h2>
+      <form id="loginForm">
+        <label for="user">Username</label>
+        <input id="user" autocomplete="username" required>
+        <label for="pass" style="margin-top:10px">Password</label>
+        <input id="pass" type="password" autocomplete="current-password" required>
+        <p id="loginMsg" class="err" role="alert"></p>
+        <button class="act" type="submit">Sign in</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="dashboard"><h2>Overview</h2><div id="stats" class="grid"></div><div id="recent" class="card" style="margin-top:16px"></div></section>
+
+  <section id="tracks">
+    <h2>Tracks</h2>
+    <div class="card">
+      <div class="row"><input id="q" placeholder="Search title, artist, album, id" style="max-width:320px"><button class="act" id="search">Search</button></div>
+      <div id="trackList" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <section id="sources"><h2>Sources</h2><div class="card"><div id="sourceList"></div></div></section>
+  <section id="dropbox"><h2>Dropbox accounts</h2><div class="card"><div class="row"><button class="act" id="connectDropbox">Connect account</button></div><div id="dbxList" style="margin-top:12px"></div></div></section>
+  <section id="errors"><h2>Errors</h2><div class="card"><div id="errorList"></div></div></section>
+  <section id="health"><h2>Deployed worker health</h2><div class="card"><div class="row"><button class="act" id="runHealth">Run checks</button><button class="act" id="testTg">Test Telegram</button><button class="act" id="setHook">Register webhook</button></div><div id="healthOut" style="margin-top:12px"></div></div></section>
+</main>
+
+<dialog id="editor"><form method="dialog"><h2 id="edTitle">Edit track</h2><div id="edFields"></div><div class="row" style="margin-top:12px"><button class="act" value="cancel">Cancel</button><button class="act" id="edSave" value="save">Save</button></div></form></dialog>
+<script src="./admin.js"></script>
+</body>
+</html>
