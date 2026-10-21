@@ -184,8 +184,11 @@ function mergeManifestTrack(t){
 }
 function loadManifest(){
   if(!window.fetch)return;
-  fetch('audio/manifest.json')
-    .then(function(r){if(!r.ok)return null;return r.json();})
+  /* Cloud catalog first (D1-backed), static file as the offline/empty fallback. */
+  var remote=window.SONORA_API?String(window.SONORA_API).replace(/\/$/,'')+'/api/manifest.json':null;
+  var url=remote||'audio/manifest.json';
+  fetch(url)
+    .then(function(r){if(!r.ok)throw new Error('manifest '+r.status);return r.json();})
     .then(function(d){
       if(!d||!d.tracks||!d.tracks.length)return;
       for(var i=0;i<d.tracks.length;i++){
@@ -197,7 +200,14 @@ function loadManifest(){
       }
       try{render();}catch(e){}
     })
-    .catch(function(){/* no manifest (404) — demo data only */});
+    .catch(function(){
+      /* remote unavailable (offline, blocked, or not configured) → try the static file once */
+      if(!remote)return;
+      fetch('audio/manifest.json')
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(d){if(!d||!d.tracks||!d.tracks.length)return;d.tracks.forEach(mergeManifestTrack);try{render();}catch(e){}})
+        .catch(function(){});
+    });
 }
 function verifyCover(url){
   /* HEAD the declared cover; if it 404s drop it so coverFor() falls back to ID3 art */
@@ -641,7 +651,7 @@ function pgArtists(){
  return h;
 }
 function pgArtist(id){
- var a=artist(id);var als=ALBUMS.filter(function(x){return x.a===id;});var pops=als.length?als[0]:ALBUMS[0];
+ var a=artist(id);var als=ALBUMS.filter(function(x){return x.a===id;});var pops=als.length?als[0]:(ALBUMS[0]||{id:'',tracks:[]});
  var evs=EVENTS.filter(function(e){return e.a===id;});var ses=SESSIONS.filter(function(s){return s.a===id;});
  var h='<div class="wrap"><div class="ar-hero"><div class="im" data-rv><img src="'+a.img+'" alt="'+esc(a.name)+'"></div>'
  +'<div data-rv style="--d:.1s"><span class="mn"><span class="ac">ARTIST</span></span><h1 style="margin-top:14px">'+esc(a.name)+'</h1>'

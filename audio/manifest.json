@@ -1,39 +1,9 @@
 {
   "_readme": [
-    "SONORA music manifest — HOW TO ADD MUSIC:",
-    "  1) Drop an .mp3 into /audio/",
-    "  2) Add ONE object below to the 'tracks' array",
-    "  3) Commit + push — no code editing needed.",
-    "",
-    "Fields: id (unique slug), file (relative path), title, artist, album are required;",
-    "year, genre, duration, cover are optional.",
-    "If 'cover' is missing (or its file 404s) the app reads the ID3 tags embedded",
-    "in the mp3 instead (title / artist / album / cover art) via js/id3.js.",
-    "Strict JSON: no // comments — keep notes in keys starting with '_'.",
-    "The two entries below are working examples pointing at bundled demo audio,",
-    "so they play immediately — replace or delete them."
+    "SONORA public catalog. Starts empty by design.",
+    "Tracks are published by the Sonora Cloud worker (integrations/sonora-cloud) into D1",
+    "and served by GET /api/manifest.json. This file stays empty unless you deliberately",
+    "hand-manage a static library."
   ],
-  "tracks": [
-    {
-      "id": "my-song-01",
-      "file": "audio/track1.mp3",
-      "title": "My Song",
-      "artist": "My Artist",
-      "album": "My Album",
-      "year": 2026,
-      "genre": "Electronic",
-      "duration": "6:13",
-      "cover": "audio/covers/my-song-01.jpg"
-    },
-    {
-      "id": "my-song-02",
-      "file": "audio/track2.mp3",
-      "title": "Second Example",
-      "artist": "My Artist",
-      "album": "My Album",
-      "year": 2026,
-      "genre": "Alternative",
-      "duration": "5:00"
-    }
-  ]
+  "tracks": []
 }

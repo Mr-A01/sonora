@@ -1,0 +1,30 @@
+# Copy to `.dev.vars` for `wrangler dev`. NEVER commit real values.
+
+# --- required ---
+TOKEN_ENCRYPTION_KEY=generate-a-long-random-string-32-bytes-min
+ADMIN_BOOTSTRAP_TOKEN=one-time-token-at-least-24-characters
+TELEGRAM_WEBHOOK_SECRET=another-long-random-secret-16plus
+PUBLIC_WORKER_URL=https://sonora-cloud.<your-subdomain>.workers.dev
+ALLOWED_ORIGINS=https://mhdlabs.github.io
+MEDIA_BASE_URL=https://sonora-cloud.<your-subdomain>.workers.dev/media
+
+# --- telegram (set as a secret, not a var) ---
+TELEGRAM_BOT_TOKEN=
+
+# --- dropbox oauth app ---
+DROPBOX_APP_KEY=
+DROPBOX_APP_SECRET=
+
+# --- transcription: Cloudflare is the default path ---
+TRANSCRIPTION_PROVIDER=cloudflare
+CF_WHISPER_MODEL=@cf/openai/whisper-large-v3-turbo
+CLEANUP_MODEL=@cf/qwen/qwen3.8-27b
+METADATA_MODEL=@cf/qwen/qwen3.8-27b
+
+# --- optional Groq fallback (leave empty to stay fully Cloudflare-native) ---
+GROQ_API_KEY=
+GROQ_WHISPER_MODEL=whisper-large-v3
+
+# --- behavior ---
+PREVIEW_MAX_SECONDS=30
+TRANSCRIBE_ON_IMPORT=true

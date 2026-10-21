@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sonora-cloud",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sonora-cloud",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "sonora-media" }],
+  "queues": {
+    "producers": [{ "binding": "IMPORT_QUEUE", "queue": "sonora-import" }],
+    "consumers": [
+      {
+        "queue": "sonora-import",
+        "max_batch_size": 5,
+        "max_batch_timeout": 30,
+        "max_retries": 3,
+        "dead_letter_queue": "sonora-import-dlq"
+      }
+    ]
+  },
+  "ai": { "binding": "AI" },
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "vars": {
+    "PUBLIC_WORKER_URL": "https://sonora-cloud.example.workers.dev",
+    "ALLOWED_ORIGINS": "https://mhdlabs.github.io",
+    "MEDIA_BASE_URL": "https://sonora-cloud.example.workers.dev/media",
+    "TRANSCRIPTION_PROVIDER": "cloudflare",
+    "CF_WHISPER_MODEL": "@cf/openai/whisper-large-v3-turbo",
+    "CLEANUP_MODEL": "@cf/qwen/qwen3.8-27b",
+    "METADATA_MODEL": "@cf/qwen/qwen3.8-27b",
+    "PREVIEW_MAX_SECONDS": "30"
+  }
+}

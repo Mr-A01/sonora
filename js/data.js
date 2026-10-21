@@ -58,39 +58,30 @@ var IMG={
  HALL:'https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/130ed182c-3e03-4bbf-80a3-fff2246ac715.png'
 };
 /* DATA */
-var ARTISTS={
- aurora:{id:'aurora',name:'Aurora Vale',g:'Alternative / Electronic',loc:'Lisbon, Portugal',ac:'#6C8CFF',img:IMG.AUR,sim:['elias','sora','nia'],bio:'Aurora Vale writes music for the hour when the city lowers its voice. Trained as a classical pianist and rebuilt as a synthesist, she treats the night as a collaborator: tram hum as bassline, sodium light as color grade. Midnight Signals, her third album, was recorded alone between 1am and 5am.'},
- milo:{id:'milo',name:'Milo North',g:'Folk / Acoustic',loc:'Oslo, Norway',ac:'#8FA98A',img:IMG.MILO,sim:['aurora','elias'],bio:'Milo North carries the Nordic folk tradition into quiet modern rooms. One guitar, one microphone, no corrections. His songs move at walking pace and reward patience.'},
- nia:{id:'nia',name:'Nia Sol',g:'Soul / R&B',loc:'London, UK',ac:'#D8A24A',img:IMG.NIA,sim:['vera','sora'],bio:'Nia Sol sings like warm static — a voice recorded close, with the room left in. Golden Static pairs analog keys with arrangements that never hurry.'},
- kairo:{id:'kairo',name:'Kairo Bloom',g:'Hip-hop / Spoken word',loc:'Accra / Berlin',ac:'#E07A4F',img:IMG.KAIRO,sim:['sora','nia'],bio:'Between Accra and Berlin, Kairo Bloom builds hip-hop from rooftop psalms, night-market field recordings and boom-bap patience.'},
- elias:{id:'elias',name:'Elias Grey',g:'Ambient / Modern classical',loc:'Reykjavík, Iceland',ac:'#7FA6B8',img:IMG.ELIAS,sim:['aurora','milo'],bio:'Elias Grey records weather. Fog, tide, and tape hiss become structure in his work — music you stand inside rather than listen to.'},
- sora:{id:'sora',name:'Sora June',g:'Indie Pop / City pop',loc:'Tokyo, Japan',ac:'#D98BA6',img:IMG.SORA,sim:['aurora','kairo'],bio:'Sora June writes small cinematic songs about large anonymous cities: vending-machine glow, last trains, umbrellas shared by strangers.'},
- vera:{id:'vera',name:'Vera Lune',g:'Jazz / Noir',loc:'Paris, France',ac:'#B84A4A',img:IMG.VERA,sim:['nia','elias'],bio:'Vera Lune performs after midnight, in rooms with low light and long memory. Velvet Hours was tracked live to tape in a single weekend.'}
-};
-function artist(id){return ARTISTS[id]||ARTISTS.aurora;}
-var ALBUMS=[
- {id:'ms',t:'Midnight Signals',a:'aurora',y:2026,g:'Alternative / Electronic',img:IMG.MS,desc:'Eight transmissions recorded between 1am and 5am. The album treats the sleeping city as an instrument — tram hum as bassline, sodium light as color grade.',tracks:[{id:'ms-01-glass-horizon',t:'Glass Horizon',d:'4:12'},{id:'ms-02-midnight-signals',t:'Midnight Signals',d:'5:03'},{id:'ms-03-half-awake',t:'Half Awake',d:'3:48'},{id:'ms-04-sodium-lights',t:'Sodium Lights',d:'4:26'},{id:'ms-05-blue-hour',t:'Blue Hour',d:'3:59'},{id:'ms-06-terminal-dreams',t:'Terminal Dreams',d:'5:41'},{id:'ms-07-afterglow',t:'Afterglow',d:'4:02'},{id:'ms-08-signal-fade',t:'Signal / Fade',d:'6:01'}]},
- {id:'gs',t:'Golden Static',a:'nia',y:2026,g:'Soul / R&B',img:IMG.NIA,desc:'Warm circuits and close vocals. Nia Sol’s second album keeps the tape hiss in on purpose.',tracks:[{id:'gs-01-honey-smoke',t:'Honey & Smoke',d:'3:44'},{id:'gs-02-golden-static',t:'Golden Static',d:'4:12'},{id:'gs-03-velvet-hour',t:'Velvet Hour',d:'3:58'},{id:'gs-04-slow-burn',t:'Slow Burn',d:'4:26'},{id:'gs-05-amber',t:'Amber',d:'3:39'},{id:'gs-06-warm-circuits',t:'Warm Circuits',d:'4:41'},{id:'gs-07-after-you',t:'After You',d:'4:16'},{id:'gs-08-close-to-dawn',t:'Close to Dawn',d:'4:20'}]},
- {id:'nr',t:'Neon Rain',a:'sora',y:2026,g:'Indie Pop',img:IMG.SORA,desc:'Seven songs for wet pavement and pink signage. City pop remembered by someone who wasn’t born yet.',tracks:[{id:'nr-01-vending-machine-glow',t:'Vending Machine Glow',d:'3:32'},{id:'nr-02-neon-rain',t:'Neon Rain',d:'4:02'},{id:'nr-03-umbrella-logic',t:'Umbrella Logic',d:'3:26'},{id:'nr-04-2am-convenience-store',t:'2AM Convenience Store',d:'3:48'},{id:'nr-05-shinjuku-blue',t:'Shinjuku Blue',d:'4:12'},{id:'nr-06-last-train-home',t:'Last Train Home',d:'4:44'},{id:'nr-07-pink-noise-city',t:'Pink Noise City',d:'3:40'}]},
- {id:'bt',t:'Bloom Theory',a:'kairo',y:2025,g:'Hip-hop',img:IMG.KAIRO,desc:'Rooftop psalms and concrete gardens. A debut that grows slowly and blooms at night.',tracks:[{id:'bt-01-concrete-garden',t:'Concrete Garden',d:'3:22'},{id:'bt-02-bloom-theory',t:'Bloom Theory',d:'3:58'},{id:'bt-03-rooftop-psalms',t:'Rooftop Psalms',d:'4:12'},{id:'bt-04-harmattan',t:'Harmattan',d:'3:41'},{id:'bt-05-night-market',t:'Night Market',d:'3:26'},{id:'bt-06-second-sun',t:'Second Sun',d:'4:05'},{id:'bt-07-gravity',t:'Gravity',d:'3:52'},{id:'bt-08-letters-home',t:'Letters Home',d:'4:16'}]},
- {id:'ns',t:'Northern Stillness',a:'milo',y:2025,g:'Folk',img:IMG.MILO,desc:'Songs at walking pace, recorded near the tree line with the window open.',tracks:[{id:'ns-01-pine-stone',t:'Pine & Stone',d:'4:02'},{id:'ns-02-the-quiet-part',t:'The Quiet Part',d:'3:41'},{id:'ns-03-frost-line',t:'Frost Line',d:'4:18'},{id:'ns-04-riverbed',t:'Riverbed',d:'3:55'},{id:'ns-05-lantern',t:'Lantern',d:'4:36'},{id:'ns-06-northern-stillness',t:'Northern Stillness',d:'5:12'},{id:'ns-07-homecoming',t:'Homecoming',d:'4:40'}]},
- {id:'fa',t:'Fog Archive',a:'elias',y:2024,g:'Ambient',img:IMG.ELIAS,desc:'Six long exposures of Icelandic weather. Not songs — places.',tracks:[{id:'fa-01-black-sand',t:'Black Sand',d:'7:12'},{id:'fa-02-fog-archive-i',t:'Fog Archive I',d:'8:04'},{id:'fa-03-tide-memory',t:'Tide Memory',d:'6:48'},{id:'fa-04-fog-archive-ii',t:'Fog Archive II',d:'7:36'},{id:'fa-05-drift',t:'Drift',d:'6:22'},{id:'fa-06-north-light',t:'North Light',d:'8:16'}]},
- {id:'pc',t:'Paper Cities',a:'aurora',y:2023,g:'Alternative',img:IMG.PC,desc:'The debut: rooftops, attics, and the last tram home.',tracks:[{id:'pc-01-paper-cities',t:'Paper Cities',d:'3:58'},{id:'pc-02-rooftop-weather',t:'Rooftop Weather',d:'4:11'},{id:'pc-03-old-keys',t:'Old Keys',d:'3:36'},{id:'pc-04-window-seat',t:'Window Seat',d:'4:24'},{id:'pc-05-last-tram',t:'Last Tram',d:'5:02'},{id:'pc-06-attic-light',t:'Attic Light',d:'3:47'},{id:'pc-07-winter-count',t:'Winter Count',d:'4:42'}]},
- {id:'vh',t:'Velvet Hours',a:'vera',y:2023,g:'Jazz',img:IMG.VERA,desc:'Live to tape in a Paris basement, after closing time.',tracks:[{id:'vh-01-velvet-hours',t:'Velvet Hours',d:'5:12'},{id:'vh-02-smoke-brass',t:'Smoke & Brass',d:'4:38'},{id:'vh-03-bar-light',t:'Bar Light',d:'5:02'},{id:'vh-04-midnight-pour',t:'Midnight Pour',d:'4:26'},{id:'vh-05-red-dress',t:'Red Dress',d:'5:44'},{id:'vh-06-last-call',t:'Last Call',d:'6:08'},{id:'vh-07-after-hours',t:'After Hours',d:'5:20'}]},
- {id:'ws',t:'Winter Songs — EP',a:'milo',y:2024,g:'Folk / Acoustic',img:IMG.WS,desc:'Five quiet songs for the darkest month.',tracks:[{id:'ws-01-first-snow',t:'First Snow',d:'3:52'},{id:'ws-02-woodsmoke',t:'Woodsmoke',d:'4:04'},{id:'ws-03-december-again',t:'December, Again',d:'3:47'},{id:'ws-04-the-long-way',t:'The Long Way',d:'4:05'},{id:'ws-05-still-here',t:'Still Here',d:'4:00'}]}
-];
-function album(id){for(var i=0;i<ALBUMS.length;i++)if(ALBUMS[i].id===id)return ALBUMS[i];return ALBUMS[0];}
-function trackRef(r){var p=r.split(':');var al=album(p[0]);var i=+p[1];var tr=al.tracks[i]||{id:al.id+'-00',t:'Unknown',d:'0:00'};return {al:al,i:i,id:tr.id||(al.id+'-'+(i+1)),t:tr.t,d:tr.d};}
-function durS(d){var p=d.split(':');return (+p[0])*60+(+p[1]);}
-var PLAYLISTS=[
- {id:'pl1',t:'2AM / ALONE IN THE CITY',d:'For empty streets and full heads.',cur:'SONORA Editors',img:IMG.ORB,tracks:['ms:2','nr:3','pc:4','fa:0','vh:2','ms:6']},
- {id:'pl2',t:'SUNDAY MORNING',d:'Slow light, slow coffee, slower tempo.',cur:'Nia Sol',img:IMG.NIA,tracks:['gs:0','ns:0','ws:0','gs:4','ns:6']},
- {id:'pl3',t:'DRIVING WITHOUT A DESTINATION',d:'Windows down, no map.',cur:'SONORA Editors',img:IMG.PC,tracks:['pc:0','bt:3','nr:5','ms:3','pc:4']},
- {id:'pl4',t:'AFTER THE RAIN',d:'The city smells like memory.',cur:'Sora June',img:IMG.SORA,tracks:['nr:1','fa:2','ms:6','pc:6','nr:6']},
- {id:'pl5',t:'WORK / DEEP FOCUS',d:'One hour of undisturbed work.',cur:'Elias Grey',img:IMG.ELIAS,tracks:['fa:0','fa:3','fa:5','ms:7','fa:4']},
- {id:'pl6',t:'NEW VOICES',d:'Artists you haven’t met yet.',cur:'SONORA Editors',img:IMG.KAIRO,tracks:['bt:0','nr:0','gs:1','ns:3','vh:0']}
-];
-function playlist(id){for(var i=0;i<PLAYLISTS.length;i++)if(PLAYLISTS[i].id===id)return PLAYLISTS[i];return PLAYLISTS[0];}
+var ARTISTS={};
+/* Safe: an empty library must never crash the page. */
+function artist(id){
+  if(ARTISTS[id])return ARTISTS[id];
+  return {id:id||'',name:'Unknown artist',g:'',loc:'',ac:'#D9A441',img:IMG.ORB,sim:[],bio:''};
+}
+var ALBUMS=[];
+function album(id){
+  for(var i=0;i<ALBUMS.length;i++)if(ALBUMS[i].id===id)return ALBUMS[i];
+  return {id:'',t:'No album',a:'',y:0,g:'',img:IMG.ORB,desc:'',credits:{},tracks:[]};
+}
+function trackRef(r){
+  var p=String(r||'').split(':');
+  var al=album(p[0]);
+  var i=+p[1]||0;
+  var tr=(al.tracks&&al.tracks[i])||{id:'',t:'Unknown',d:'0:00'};
+  return {al:al,i:i,id:tr.id||'',t:tr.t,d:tr.d};
+}
+function durS(d){var p=String(d||'0:00').split(':');return (+p[0]||0)*60+(+p[1]||0);}
+var PLAYLISTS=[];
+function playlist(id){
+  for(var i=0;i<PLAYLISTS.length;i++)if(PLAYLISTS[i].id===id)return PLAYLISTS[i];
+  return {id:'',t:'Playlist',d:'',cur:'',img:IMG.ORB,tracks:[]};
+}
 var STORIES=[
  {id:'st1',cat:'Culture',t:'The sound of midnight',au:'Lena Okafor',rt:'12 min',img:IMG.STUDIO,ex:'A visual story about artists who create after dark — when the city lowers its voice and the machines start listening.',quote:'Night is not the absence of day. It is a different instrument.',body:['The studio above the tram depot only makes sense after 1am. That is when Aurora Vale begins, when the last train has passed and the building stops vibrating. “I don’t fight the noise floor,” she says. “I tune to it.”','Across town, a producer keeps his monitors quiet enough that the room stays in the mix. A jazz singer records after closing time, with the glasses still on the bar. What they share is not a genre but a schedule: they work in the hours when listening becomes possible.','Midnight is not empty. It is full of small signals — fridge hum, distant doors, the city breathing. The artists in this story treat those signals as collaborators.','When the sun comes up, they stop. Not because they are tired, but because the instrument has changed.']},
  {id:'st2',cat:'Sound',t:'Why silence became part of modern music',au:'M. Duarte',rt:'8 min',img:IMG.HALL,ex:'From concert halls to ambient techno: how the quiet learned to carry a song.',quote:'Silence is not the opposite of music. It is the frame.',body:['Every room has a noise floor, and every recording decides what to do with it. This is a short history of the artists who decided to keep it.','From tape hiss left deliberately in the mix to long passages of near-nothing on modern records, silence became a material — something arranged, not avoided.','The essay traces the lineage from experimental concert music to ambient, and asks what the loudness war did to our tolerance for quiet.']},
@@ -120,11 +111,7 @@ var STATIONS=[
  {id:'world',n:'World',tag:'Everywhere at once',ac:'#C97B4F',host:'S. Diallo'}
 ];
 var SCHEDULE=[['18:00','Drive Time, Gently','P. Lindgren','Indie'],['19:00','New Voices Hour','K. Adeyemi','Discovery'],['20:00','Blue Hour','T. Marchand','Jazz'],['21:00','After-Hours Pulse','DJ Halide','Electronic'],['22:00','The Last Hour','Mara Voss','Late Night']];
-var SESSIONS=[
- {id:'se1',n:'SONORA SESSIONS / 018',a:'aurora',loc:'Lisbon — Warehouse on Rua do Vapor',dur:'42:18',img:IMG.SESSION,notes:'Recorded in an empty warehouse with one spotlight and a quadraphonic tape rig. No overdubs; the room is in every take.',set:[['Glass Horizon','04:12'],['Sodium Lights','04:26'],['Half Awake — stripped','03:58'],['Midnight Signals','05:03'],['Afterglow','04:02']]},
- {id:'se2',n:'SONORA SESSIONS / 017',a:'elias',loc:'Reykjavík — Harpa, Studio B',dur:'38:44',img:IMG.ELIAS,notes:'Three long exposures performed to a room of forty listeners in the dark.',set:[['Black Sand','07:12'],['Tide Memory','06:48'],['North Light','08:16']]},
- {id:'se3',n:'SONORA SESSIONS / 016',a:'vera',loc:'Paris — Le Caveau, after hours',dur:'35:20',img:IMG.VERA,notes:'Tracked live after closing time, glasses and all.',set:[['Velvet Hours','05:12'],['Bar Light','05:02'],['Last Call','06:08']]}
-];
+var SESSIONS=[];
 var GENRES=[
  {id:'electronic',n:'Electronic',sub:['Techno','IDM','Synthwave','Downtempo'],rel:['ambient','indie'],blurb:'Music built from circuits and clocks — from Düsseldorf to Detroit to Berlin.'},
  {id:'jazz',n:'Jazz',sub:['Noir','Modal','Spiritual','Vocal'],rel:['soul','classical'],blurb:'The art of composing in real time, in rooms with long memory.'},
@@ -148,12 +135,7 @@ var HISTORY=[
  {y:'2026',g:['AI-assisted','Field recording','Neo-soul'],t:'AI-assisted production',a:'Tools that listen back',m:'The question shifts from “made by whom” to “cared for by whom”'}
 ];
 var TECH=[['1948','Vinyl','The first format. The object becomes the music.'],['1963','Cassette','Portable, personal, imperfect — and revolutionary.'],['1982','Compact Disc','Silence between tracks becomes digital zero.'],['1995','MP3','The file. Music leaves the object entirely.'],['2010','Streaming','Access replaces ownership; the library becomes a pipe.'],['2021','Spatial audio','The mix gains a room; listening gains a body.'],['2026','AI-assisted production','Tools that suggest, arrange, and listen back.']];
-var CHARTS=[
- {ref:'ms:1',mv:'NEW',plays:'2.1M'},{ref:'gs:1',mv:'+2',plays:'1.8M'},{ref:'nr:1',mv:'+1',plays:'1.6M'},
- {ref:'bt:1',mv:'-2',plays:'1.4M'},{ref:'ms:3',mv:'+4',plays:'1.2M'},{ref:'vh:0',mv:'0',plays:'1.1M'},
- {ref:'ns:5',mv:'-1',plays:'980k'},{ref:'fa:0',mv:'+3',plays:'910k'},{ref:'nr:5',mv:'NEW',plays:'860k'},
- {ref:'gs:4',mv:'-3',plays:'800k'},{ref:'pc:0',mv:'+1',plays:'740k'},{ref:'ws:0',mv:'-4',plays:'690k'}
-];
+var CHARTS=[];
 var LYRICS_MS=[['City hums in minor keys','windows breathe in sodium'],['I keep your voice on frequency','half asleep and halfway home'],['Midnight signals, carry slow','every light a morse of you'],['If the night is a transmitter','then my heart’s the antenna, tuned'],['Static on the staircase','shadow on the wall'],['I read the streetlights slowly','like handwriting, like you'],['Midnight signals, carry slow','tell the dark I’m listening still'],['If silence is a country','then this song’s a postcard home']];
 
 /* Collect everything for tooling / future use. */
