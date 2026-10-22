@@ -1,9 +1,11 @@
 node_modules/
 .wrangler/
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 .env
 .env.*
-!.dev.vars.example
+!.env.example
 __pycache__/
 *.pyc
 .DS_Store
@@ -11,3 +13,6 @@ __pycache__/
 *.sqlite
 *.sqlite3
 dist/
+coverage/
+*.log
+*.tmp

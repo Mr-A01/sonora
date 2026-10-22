@@ -32,6 +32,13 @@ function audioUpdate({ updateId = 1, messageId = 10, duration = 200, fileSize = 
   };
 }
 
+/** Sources are allowlist-only: register the chat exactly as the admin route does. */
+async function registerSource(env, chatId = '-1001') {
+  await env.DB.prepare('INSERT INTO sources (id, chat_id, title, kind, enabled) VALUES (?, ?, ?, ?, 1)')
+    .bind(crypto.randomUUID(), chatId, 'Sonora Channel', 'channel')
+    .run();
+}
+
 test('webhook rejects a wrong secret', async () => {
   const env = fakeEnv();
   const res = await worker.fetch(webhookRequest(audioUpdate(), 'wrong-secret'), env);
@@ -51,6 +58,7 @@ test('webhook rejects a request with no secret header', async () => {
 
 test('valid update enqueues exactly one job with no audio payload', async () => {
   const env = fakeEnv();
+  await registerSource(env);
   const res = await worker.fetch(webhookRequest(audioUpdate()), env);
   assert.equal(res.status, 200);
   const body = await res.json();
@@ -63,6 +71,7 @@ test('valid update enqueues exactly one job with no audio payload', async () => 
 
 test('duplicate delivery does not create a second track', async () => {
   const env = fakeEnv();
+  await registerSource(env);
   await worker.fetch(webhookRequest(audioUpdate()), env);
   const res = await worker.fetch(webhookRequest(audioUpdate()), env);
   const body = await res.json();
@@ -74,6 +83,7 @@ test('duplicate delivery does not create a second track', async () => {
 
 test('30 second preview is rejected before any enqueue', async () => {
   const env = fakeEnv();
+  await registerSource(env);
   const res = await worker.fetch(webhookRequest(audioUpdate({ duration: 30 })), env);
   const body = await res.json();
   assert.equal(body.rejected, 'preview_too_short');
@@ -85,6 +95,7 @@ test('30 second preview is rejected before any enqueue', async () => {
 
 test('oversized file is rejected without enqueue', async () => {
   const env = fakeEnv();
+  await registerSource(env);
   const res = await worker.fetch(webhookRequest(audioUpdate({ fileSize: 25 * 1024 * 1024 })), env);
   const body = await res.json();
   assert.equal(body.rejected, 'file_too_large');
@@ -103,6 +114,7 @@ test('non-audio message is ignored', async () => {
 
 test('source sequence increments durably per chat', async () => {
   const env = fakeEnv();
+  await registerSource(env);
   await worker.fetch(webhookRequest(audioUpdate({ updateId: 1, messageId: 1 })), env);
   await worker.fetch(webhookRequest(audioUpdate({ updateId: 2, messageId: 2 })), env);
   const rows = await env.DB.prepare('SELECT source_sequence FROM tracks ORDER BY source_sequence').all();

@@ -44,6 +44,19 @@ export async function handleWebhook(request, env) {
     return json({ ok: true, ignored: true });
   }
 
+  // Source access is enforced from D1, the authoritative state, before any track
+  // row exists. Unknown chats are NOT auto-enrolled: a chat becomes importable
+  // only after an administrator registers it via POST /api/admin/sources.
+  const source = await findSource(db, audio.chatId);
+  if (!source) {
+    await markUpdate(db, update.update_id, 'source_unknown');
+    return json({ ok: true, ignored: 'source_unknown' });
+  }
+  if (!source.enabled) {
+    await markUpdate(db, update.update_id, 'source_disabled');
+    return json({ ok: true, ignored: 'source_disabled' });
+  }
+
   if (audio.fileSize && audio.fileSize > MAX_IMPORT_BYTES) {
     await recordRejection(db, audio, 'file_too_large', `file is ${audio.fileSize} bytes; Telegram Bot API caps downloads at 20 MB`);
     return json({ ok: true, rejected: 'file_too_large' });
@@ -54,13 +67,18 @@ export async function handleWebhook(request, env) {
   }
 
   const ext = detectAudioExtension(audio.mimeType, audio.filename);
-  const source = await upsertSource(db, audio);
 
   // Ordering is enforced with a durable per-source sequence, not Queue order.
+  // The `enabled = 1` predicate is repeated here so a disable that lands between
+  // the check above and this UPDATE still cannot start an import.
   const seqRow = await db
-    .prepare('UPDATE sources SET last_sequence = last_sequence + 1, updated_at = ? WHERE id = ? RETURNING last_sequence')
+    .prepare('UPDATE sources SET last_sequence = last_sequence + 1, updated_at = ? WHERE id = ? AND enabled = 1 RETURNING last_sequence')
     .bind(nowIso(), source.id)
     .first();
+  if (!seqRow) {
+    await markUpdate(db, update.update_id, 'source_disabled');
+    return json({ ok: true, ignored: 'source_disabled' });
+  }
 
   const trackId = crypto.randomUUID();
   let track;
@@ -126,15 +144,8 @@ async function markUpdate(db, updateId, status) {
   await db.prepare('UPDATE telegram_updates SET status = ? WHERE update_id = ?').bind(status, updateId).run();
 }
 
-async function upsertSource(db, audio) {
-  const existing = await db.prepare('SELECT * FROM sources WHERE chat_id = ?').bind(audio.chatId).first();
-  if (existing) return existing;
-  const id = crypto.randomUUID();
-  await db
-    .prepare(`INSERT INTO sources (id, chat_id, title, kind, enabled) VALUES (?, ?, ?, ?, 1)`)
-    .bind(id, audio.chatId, audio.chatTitle, audio.chatType === 'channel' ? 'channel' : 'group')
-    .run();
-  return { id, chat_id: audio.chatId, last_sequence: 0 };
+async function findSource(db, chatId) {
+  return db.prepare('SELECT * FROM sources WHERE chat_id = ?').bind(chatId).first();
 }
 
 /** Idempotent rejection record: repeated updates never re-run work. */

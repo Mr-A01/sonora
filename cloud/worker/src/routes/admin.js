@@ -205,6 +205,32 @@ export async function handleAdmin(request, env, path, method) {
     return json({ sources: results || [] });
   }
 
+  // Explicit registration. The webhook never enrolls a chat on its own, so this
+  // is the only way a Telegram chat becomes importable. Idempotent by chat_id.
+  if (path === '/api/admin/sources' && method === 'POST') {
+    const body = await readJson(request);
+    const chatId = String(body.chat_id ?? '').trim();
+    if (!/^-?\d+$/.test(chatId)) return fail(400, 'validation', 'chat_id must be a numeric Telegram chat id');
+    const title = typeof body.title === 'string' ? body.title.normalize('NFC').trim().slice(0, 200) : null;
+    const kind = body.kind === 'group' ? 'group' : 'channel';
+
+    const existing = await db.prepare('SELECT * FROM sources WHERE chat_id = ?').bind(chatId).first();
+    if (existing) {
+      // Re-registering an existing chat re-enables it without touching its sequence.
+      await db.prepare('UPDATE sources SET enabled=1, updated_at=? WHERE id=?').bind(nowIso(), existing.id).run();
+      await audit(db, adminId, 'source.register', existing.id, { chat_id: chatId, existing: true });
+      return json({ ok: true, id: existing.id, existing: true, enabled: true });
+    }
+
+    const id = crypto.randomUUID();
+    await db
+      .prepare(`INSERT INTO sources (id, chat_id, title, kind, enabled) VALUES (?, ?, ?, ?, 1)`)
+      .bind(id, chatId, title, kind)
+      .run();
+    await audit(db, adminId, 'source.register', id, { chat_id: chatId });
+    return json({ ok: true, id, existing: false, enabled: true });
+  }
+
   const sourceMatch = path.match(/^\/api\/admin\/sources\/([A-Za-z0-9-]+)$/);
   if (sourceMatch && method === 'PATCH') {
     const body = await readJson(request);

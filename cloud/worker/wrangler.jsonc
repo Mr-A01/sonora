@@ -26,6 +26,8 @@
     ]
   },
   "ai": { "binding": "AI" },
+  // Admin SPA. Served from the Worker origin so cookies stay first-party.
+  "assets": { "directory": "./public" },
   "triggers": { "crons": ["*/15 * * * *"] },
   "vars": {
     "PUBLIC_WORKER_URL": "https://sonora-cloud.example.workers.dev",
@@ -35,6 +37,7 @@
     "CF_WHISPER_MODEL": "@cf/openai/whisper-large-v3-turbo",
     "CLEANUP_MODEL": "@cf/qwen/qwen3.8-27b",
     "METADATA_MODEL": "@cf/qwen/qwen3.8-27b",
-    "PREVIEW_MAX_SECONDS": "30"
+    "PREVIEW_MAX_SECONDS": "30",
+    "TRANSCRIBE_ON_IMPORT": "true"
   }
 }
