@@ -71,7 +71,7 @@ Never edit an applied migration. Add `0002_*.sql`.
 | `CLEANUP_MODEL` | `@cf/qwen/qwen3.8-27b` | Transcript-cleanup model id. Also probed by health. |
 | `METADATA_MODEL` | `@cf/qwen/qwen3.8-27b` | Metadata completion model id. |
 | `PREVIEW_MAX_SECONDS` | `30` | Reject tracks at or below this duration. Non-numeric/≤0 falls back to 30. |
-| `TRANSCRIBE_ON_IMPORT` | unset (behaves `true`) | `false` disables the transcription stage. |
+| `TRANSCRIBE_ON_IMPORT` | `true` | `false` disables automatic transcription only. Embedded SYLT/USLT lyrics are still extracted; unidentified containers are never transcribed. |
 
 Model IDs and prices change. Verify availability in the Workers AI catalog before
 changing them, then check `workers_ai` in `/api/health`.
@@ -231,20 +231,23 @@ npx wrangler d1 execute sonora-cloud --remote \
 | `dropbox_unavailable` in `error_log` | no enabled account / quota | reconnect or check quota |
 | Track stuck `deleting` | provider delete failed | admin Retry or wait for cron |
 | `workers_ai.ok === false` | model id invalid or unavailable | verify the model id in the catalog |
+| Import ignored as `source_disabled` | source is disabled in D1 | re-enable it in admin → Sources |
 
 ## 13. Limits and plan dependencies
 
 - Telegram Bot API download cap: 20 MB (hard provider limit).
 - Groq upload cap enforced in code: 25 MB.
 - No `ffmpeg`, no persistent filesystem: duration parsing is limited to
-  MP3/FLAC; M4A/OGG resolve to `null`.
+  MP3/FLAC. M4A, OGG/Opus, and WAV uploads keep the correct content type but
+  resolve to `duration: null`, so they stay `needs_review` unless Telegram
+  reported a duration.
 - Workers AI Whisper accepts bounded payloads; long tracks have no chunking
   strategy implemented.
 - Queues: at-least-once, unordered; ordering is only durable per source.
 - Workers AI, Queues, R2, and D1 bill per usage with plan limits. Verify current
   entitlement in the dashboard; nothing here assumes a free tier.
-- M4A/AAC uploads to R2 use `content-type: audio/ogg` (known defect; browsers
-  usually still decode).
+- Disabling a source in admin stops new imports from that chat; it does not
+  remove tracks already imported from it.
 
 ## 14. Credential rotation
 

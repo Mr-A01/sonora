@@ -76,6 +76,8 @@ Coverage by file:
 | `lyrics.test.js` | cleanup merge rules and rejection paths |
 | `tags.test.js` | UTF-8/Persian ID3, absent tags, APIC, filename parsing |
 | `audio.test.js` | MP3/FLAC duration probing |
+| `sources.test.js` | enabled/disabled/unknown/re-enabled source handling in the webhook |
+| `formats.test.js` | MIME detection, content-type mapping, R2 metadata, `TRANSCRIBE_ON_IMPORT` on/off |
 | `config.test.js` | `wrangler.jsonc` still points at real entrypoint, migrations dir, admin assets, queue + DLQ |
 
 `npm run build` proves the Worker bundles. It does not deploy and does not need
@@ -125,6 +127,8 @@ never included. The admin UI exposes the same data (Dashboard, Errors, Health).
 ## Conventions
 
 - ESM only (`"type": "module"`), no TypeScript, no build step for source.
+- Audio content types live in `AUDIO_CONTENT_TYPES` (`src/services/audio.js`).
+  Add a format there (and to `detectAudioExtension`) rather than at a call site.
 - Keep the module split: `routes/` (HTTP shaping), `services/` (providers and
   parsing), `jobs/` (pipelines), `db/` (queries for jobs), `lib/` (primitives).
 - Add tests next to the behaviour they cover; mocks live in `tests/harness.js`.

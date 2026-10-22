@@ -109,18 +109,25 @@ which is an intentionally empty fallback.
 5. **Publish only when required storage is `stored`** (`allStored(db, id, ['r2'])`)
    and title, artist, and a non-null duration exist.
 6. **Unknown duration is `NULL`, never `0`.** Such tracks stay `needs_review`.
-7. **Lyrics timing is immutable.** Cleanup models return text per segment id;
+7. **A disabled source imports nothing.** `sources.enabled` is checked from D1 in
+   the webhook, before any track row, and again in the sequencing UPDATE. The
+   webhook still answers `200` (`ignored: 'source_disabled'`) so Telegram does not
+   retry. First contact auto-registers a chat as enabled.
+8. **Lyrics timing is immutable.** Cleanup models return text per segment id;
    timings are merged back from the original transcription. Plain lyrics are
    never presented as synchronized.
-8. **`manual_override = 1` blocks automated lyric writes** (enforced by the
+9. **`manual_override = 1` blocks automated lyric writes** (enforced by the
    `ON CONFLICT ... WHERE lyrics.manual_override = 0` clause).
-9. **Model IDs are configuration** (`CF_WHISPER_MODEL`, `CLEANUP_MODEL`,
-   `METADATA_MODEL`), not code constants. Defaults live in `src/services/ai.js`.
-10. **Secrets never enter responses, logs, or the repo.** Health output is
+10. **Model IDs are configuration** (`CF_WHISPER_MODEL`, `CLEANUP_MODEL`,
+    `METADATA_MODEL`), not code constants. Defaults live in `src/services/ai.js`.
+11. **Audio content types come from one place**: `detectAudioExtension()` +
+    `audioContentType()` in `src/services/audio.js`. Never hard-code a content
+    type at an upload site.
+12. **Secrets never enter responses, logs, or the repo.** Health output is
     secret-free by design and asserted by a test.
-11. **Admin auth is server-side**: HttpOnly session cookie, hashed tokens in D1,
+13. **Admin auth is server-side**: HttpOnly session cookie, hashed tokens in D1,
     CSRF double-submit bound to the session row, origin allowlist.
-12. **Object keys are derived from track IDs**, never from editable titles.
+14. **Object keys are derived from track IDs**, never from editable titles.
 
 ## 5. Key data contracts
 
@@ -183,15 +190,17 @@ verification.
 
 ## 8. Known limitations (verified in code)
 
-- `sources.enabled` is stored, toggled from the admin UI, and never checked by
-  the webhook. Disabling a source currently has no effect on imports.
+- `sources.enabled` is enforced by the webhook; a disabled source acknowledges
+  updates with `{ ok: true, ignored: "source_disabled" }` and stores no track.
 - `settings` table exists and is unused.
 - `retryCleanup`, `telegram.getChatMember`, and `telegram.deleteWebhook` are
   exported but not called by any route.
-- Non-MP3/FLAC audio is uploaded to R2 with `content-type: audio/ogg` even for
-  `.m4a`; browsers usually still play it, but the header is wrong.
-- `TRANSCRIBE_ON_IMPORT` is read by the importer but is not declared in
-  `wrangler.jsonc`; default behaviour is transcription **on**.
+- Duration probing covers MP3 and FLAC only. M4A, OGG/Opus, and WAV are accepted
+  and stored with the correct content type, but resolve to `duration: null` and
+  therefore `needs_review` unless Telegram reported a duration.
+- `TRANSCRIBE_ON_IMPORT` is opt-out (`false` disables automatic transcription).
+  Embedded SYLT/USLT lyrics are still extracted when it is `false`. Unidentified
+  containers (`bin`) are never sent to Whisper.
 - Telegram Bot API downloads are capped at 20 MB; no chunking is implemented.
 - Dropbox quota data is only refreshed when an account health check runs, so
   `pickAccount` can select an account whose stored quota is stale.

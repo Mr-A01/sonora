@@ -3,7 +3,7 @@
  * Each stage records durable state so a retry only redoes unfinished work.
  */
 import { audioKey, coverKey, nowIso } from '../lib/ids.js';
-import { probeDuration, isPreview, PREVIEW_MAX_SECONDS } from '../services/audio.js';
+import { probeDuration, isPreview, audioContentType, PREVIEW_MAX_SECONDS } from '../services/audio.js';
 import { readId3, normalizeText, parseFilename } from '../services/tags.js';
 import { resolveMetadata, completeMetadataWithAi } from '../services/metadata.js';
 import { telegram } from '../services/telegram.js';
@@ -61,7 +61,9 @@ export async function importTrack(env, trackId, meta = {}) {
     throw new ImportError(err.message, { retryable: err.code !== 'file_too_large' });
   }
 
-  const ext = meta.ext && meta.ext !== 'bin' ? meta.ext : 'mp3';
+  // An unidentified container keeps the 'bin' marker: it is stored as opaque
+  // bytes instead of pretending to be MP3.
+  const ext = meta.ext && /^(mp3|m4a|ogg|opus|flac|wav)$/.test(meta.ext) ? meta.ext : 'bin';
 
   // 2. Duration: trusted metadata first, never assumed zero.
   const id3 = readId3(bytes);
@@ -93,7 +95,7 @@ export async function importTrack(env, trackId, meta = {}) {
 
   // 4. R2 uploads. Stable keys, independent of titles.
   const aKey = audioKey(trackId, ext);
-  const contentType = ext === 'mp3' ? 'audio/mpeg' : ext === 'flac' ? 'audio/flac' : 'audio/ogg';
+  const contentType = audioContentType(ext);
   await beginOperation(db, { trackId, provider: 'r2', objectKey: aKey });
   try {
     await putR2(env, aKey, bytes, contentType);
@@ -223,7 +225,11 @@ async function resolveLyrics(env, db, { trackId, bytes, id3, filename, language,
   }
 
   // Transcription is the default path; only an explicit opt-out skips it.
-  if (String(env.TRANSCRIBE_ON_IMPORT || 'true') === 'false') return { kind: 'skipped' };
+  // Embedded SYLT/USLT above are unaffected by this setting.
+  if (!transcriptionEnabled(env)) return { kind: 'skipped' };
+  // An unidentifiable container is not sent to Whisper: that would burn an AI
+  // call on bytes we could not classify. The track is already needs_review.
+  if (ext === 'bin') return { kind: 'unsupported_format' };
 
   let transcription;
   try {
@@ -291,6 +297,14 @@ function transcriptionProvider(env) {
   return String(env.TRANSCRIPTION_PROVIDER || 'cloudflare') === 'groq' && env.GROQ_API_KEY
     ? 'groq'
     : 'cloudflare';
+}
+
+/**
+ * `TRANSCRIBE_ON_IMPORT` is opt-out: unset/`true` transcribes, `false` disables
+ * automatic transcription only. Embedded lyrics are always extracted first.
+ */
+export function transcriptionEnabled(env) {
+  return String(env.TRANSCRIBE_ON_IMPORT ?? 'true').trim().toLowerCase() !== 'false';
 }
 
 async function saveLyrics(db, trackId, { source, format, status, text, segments, raw, model }) {

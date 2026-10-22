@@ -102,15 +102,22 @@ delete/retry), `tracks/:id/lyrics` (PUT, manual override), `sources` (+
 4. `extractAudio()` accepts `message` or `channel_post`, and
    `audio | document | voice`. Documents must have an `audio/*` or
    `application/octet-stream` MIME type.
-5. Rejections happen before enqueue and are recorded idempotently as a `failed`
+5. **Source check against D1.** If the chat already has a `sources` row with
+   `enabled = 0`, the update is recorded as `source_disabled` and acknowledged
+   with `{ ok: true, ignored: "source_disabled" }` — no track row, no job, no
+   queue message, and `last_sequence` does not advance. Unknown chats are
+   registered on first audio message with `enabled = 1`.
+6. Rejections happen before enqueue and are recorded idempotently as a `failed`
    track row:
    - `file_too_large` — `file_size` > 20 MB (`MAX_IMPORT_BYTES`, matches the Bot
      API download cap).
    - `preview_too_short` — `duration <= PREVIEW_MAX_SECONDS` (default 30 s).
-6. Upsert `sources` by `chat_id` (`channel` or `group`).
-7. `UPDATE sources SET last_sequence = last_sequence + 1 ... RETURNING` — the
-   durable per-source order. The value is stored on the new `tracks` row.
-8. Insert `tracks` (`status='pending'`, `source_metadata` JSON with file id,
+7. Upsert `sources` by `chat_id` (`channel` or `group`) if it is new.
+8. `UPDATE sources SET last_sequence = last_sequence + 1 ... WHERE id = ? AND
+   enabled = 1 RETURNING` — the durable per-source order. The repeated `enabled`
+   predicate closes the race where an admin disables the source between the check
+   and this write; no row means the source was disabled → same acknowledgement.
+9. Insert `tracks` (`status='pending'`, `source_metadata` JSON with file id,
    filename, MIME, caption, duration), create a `jobs` row, and
    `IMPORT_QUEUE.send({ jobId, trackId })`.
 
@@ -157,7 +164,7 @@ are deliberately not serialized; there is no cross-source ordering guarantee.
 |---|---|
 | `admins` | Admin accounts; `username` UNIQUE; PBKDF2 hash + salt + iterations; `role`, `disabled` |
 | `sessions` | `token_hash` UNIQUE, `csrf_hash`, `expires_at`, `revoked_at` |
-| `sources` | Telegram chats; `chat_id` UNIQUE; `last_sequence` ordering counter; `access_status/access_error`; `enabled` (stored, not enforced) |
+| `sources` | Telegram chats; `chat_id` UNIQUE; `last_sequence` ordering counter; `access_status/access_error`; `enabled` enforced by the webhook |
 | `telegram_updates` | `update_id` PK — webhook dedupe |
 | `tracks` | Catalog rows; status machine; `UNIQUE (source_id, source_sequence)`, `UNIQUE (telegram_chat_id, telegram_message_id)` |
 | `track_storage` | One row per `(track_id, provider, object_key)` with `state`; PK is that triple |
@@ -210,9 +217,23 @@ Ordered stages, each durable so a retry only redoes unfinished work:
    (title/performer) → filename. Then `completeMetadataWithAi` fills **only**
    missing fields; years must be integers in `[1900, currentYear]`. Model output
    that fails validation is dropped, not guessed.
-5. **R2 audio.** Key `audio/<trackId>.<ext>`, content type from extension
-   (`audio/mpeg`, `audio/flac`, otherwise `audio/ogg`). Recorded in
-   `track_storage` before and after the put.
+5. **R2 audio.** Key `audio/<trackId>.<ext>` where `ext` is one of
+   `mp3|m4a|ogg|opus|flac|wav|bin`. The content type comes from
+   `audioContentType(ext)` in `src/services/audio.js`:
+
+   | ext | Content type |
+   |---|---|
+   | mp3 | `audio/mpeg` |
+   | m4a | `audio/mp4` |
+   | ogg, opus | `audio/ogg` |
+   | flac | `audio/flac` |
+   | wav | `audio/wav` |
+   | bin | `application/octet-stream` |
+
+   `detectAudioExtension(mime, filename)` prefers the declared MIME type and only
+   falls back to the filename when the MIME type does not identify the container.
+   An unidentified container stays `bin` and is stored as opaque bytes; it is
+   never relabelled as MP3.
 6. **R2 cover.** Optional. `covers/<trackId>.<png|webp|jpg>` from ID3 APIC. A
    cover failure is logged and does not block audio.
 7. **Dropbox archive.** `pickAccount` chooses the enabled account with
@@ -252,7 +273,11 @@ A `cleanup` job is enqueued; if enqueue fails, cleanup runs inline.
    Whisper is not called.
 2. **Embedded USLT** → `source='embedded'`, `format='plain'`, `segments=NULL`.
    Explicitly not synchronized; the player must not treat it as timed.
-3. **Transcription** unless `TRANSCRIBE_ON_IMPORT === 'false'`.
+3. **Transcription** unless `TRANSCRIBE_ON_IMPORT` is `false` (case-insensitive,
+   whitespace-trimmed; unset/empty means enabled). Disabling it skips automatic
+   transcription only: steps 1 and 2 still run, and no AI call is made. An
+   unidentifiable container (`bin`) is also skipped, so Whisper is never sent
+   bytes we could not classify.
 4. **Neither** → no lyrics row.
 
 Transcription providers (`src/services/transcribe.js`):
@@ -333,4 +358,5 @@ the response. `GET /api/admin/health` returns the same report on the admin origi
 
 Best-effort areas (do not describe as guarantees): metadata AI completion, lyric
 cleanup quality, Dropbox availability, quota freshness, Telegram delivery order
-(only per-source sequence is durable), and MIME correctness for `.m4a`.
+(only per-source sequence is durable), and duration detection for containers
+other than MP3/FLAC.

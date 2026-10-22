@@ -73,13 +73,43 @@ export function flacDurationSeconds(bytes) {
   return Math.round(totalSamples / sampleRate);
 }
 
+/**
+ * Stored content type per detected container. `bin` means "could not identify":
+ * it is stored as a generic byte stream rather than claiming to be audio.
+ */
+export const AUDIO_CONTENT_TYPES = {
+  mp3: 'audio/mpeg',
+  m4a: 'audio/mp4',
+  ogg: 'audio/ogg',
+  opus: 'audio/ogg',
+  flac: 'audio/flac',
+  wav: 'audio/wav',
+  bin: 'application/octet-stream',
+};
+
+export function audioContentType(ext) {
+  return AUDIO_CONTENT_TYPES[ext] || AUDIO_CONTENT_TYPES.bin;
+}
+
+/**
+ * Container detection from the declared MIME type first, filename second.
+ * Filename alone never upgrades an unknown MIME to a validated format.
+ */
 export function detectAudioExtension(mime = '', filename = '') {
   const m = String(mime).toLowerCase();
   const f = String(filename).toLowerCase();
-  if (m.includes('mpeg') || m.includes('mp3') || f.endsWith('.mp3')) return 'mp3';
-  if (m.includes('flac') || f.endsWith('.flac')) return 'flac';
-  if (m.includes('ogg') || m.includes('opus') || f.endsWith('.ogg') || f.endsWith('.opus')) return 'ogg';
-  if (m.includes('mp4') || m.includes('m4a') || m.endsWith('aac') || f.endsWith('.m4a') || f.endsWith('.aac')) return 'm4a';
+  if (m.includes('mpeg') || m.includes('mp3')) return 'mp3';
+  if (m.includes('flac')) return 'flac';
+  if (m.includes('opus')) return 'opus';
+  if (m.includes('ogg') || m.includes('vorbis')) return 'ogg';
+  if (m.includes('mp4') || m.includes('m4a') || m.includes('aac')) return 'm4a';
+  if (m.includes('wav') || m.includes('x-wav') || m.includes('wave')) return 'wav';
+  if (f.endsWith('.mp3')) return 'mp3';
+  if (f.endsWith('.flac')) return 'flac';
+  if (f.endsWith('.opus')) return 'opus';
+  if (f.endsWith('.ogg') || f.endsWith('.oga') || f.endsWith('.vorbis')) return 'ogg';
+  if (f.endsWith('.m4a') || f.endsWith('.mp4') || f.endsWith('.aac')) return 'm4a';
+  if (f.endsWith('.wav') || f.endsWith('.wave')) return 'wav';
   return 'bin';
 }
 
@@ -88,7 +118,7 @@ export function probeDuration(bytes, ext) {
   if (!bytes || bytes.length < 32) return null;
   if (ext === 'mp3') return mp3DurationSeconds(bytes);
   if (ext === 'flac') return flacDurationSeconds(bytes);
-  return null; // m4a/ogg need container-specific parsing; never guessed
+  return null; // m4a/ogg/opus/wav need container-specific parsing; never guessed
 }
 
 export function isPreview(durationSeconds, threshold = PREVIEW_MAX_SECONDS) {
