@@ -31,6 +31,8 @@ export function corsHeaders(request, env) {
 export function isAllowedOrigin(request, env) {
   const origin = request.headers.get('origin');
   if (!origin) return true; // same-origin / non-browser clients still need auth + CSRF
+  // The admin SPA is served by this Worker, so its own origin is always allowed.
+  if (origin === new URL(request.url).origin) return true;
   const allowed = String(env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((s) => s.trim())

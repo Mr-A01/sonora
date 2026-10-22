@@ -92,6 +92,20 @@ test('login from a non-allowlisted origin is refused', async () => {
   assert.equal(res.status, 403);
 });
 
+test('login from the Worker\'s own origin is allowed (admin SPA is same-origin)', async () => {
+  const env = fakeEnv({ ALLOWED_ORIGINS: 'https://mhdlabs.github.io' });
+  const creds = await createAdmin(env);
+  const res = await worker.fetch(
+    new Request('https://sonora.test/api/admin/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://sonora.test' },
+      body: JSON.stringify(creds),
+    }),
+    env
+  );
+  assert.equal(res.status, 200);
+});
+
 test('deletion requires the explicit confirmation header', async () => {
   const env = fakeEnv();
   const creds = await createAdmin(env);

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "build": "wrangler deploy --dry-run --outdir=.wrangler/dry-run",
     "migrate:local": "wrangler d1 migrations apply sonora-cloud --local",
     "migrate:remote": "wrangler d1 migrations apply sonora-cloud --remote",
     "test": "node --test tests/"

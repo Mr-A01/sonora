@@ -26,6 +26,8 @@
     ]
   },
   "ai": { "binding": "AI" },
+  // Admin SPA. Served from the Worker origin so cookies stay first-party.
+  "assets": { "directory": "./public" },
   "triggers": { "crons": ["*/15 * * * *"] },
   "vars": {
     "PUBLIC_WORKER_URL": "https://sonora-cloud.example.workers.dev",
