@@ -76,7 +76,7 @@ Coverage by file:
 | `lyrics.test.js` | cleanup merge rules and rejection paths |
 | `tags.test.js` | UTF-8/Persian ID3, absent tags, APIC, filename parsing |
 | `audio.test.js` | MP3/FLAC duration probing |
-| `sources.test.js` | enabled/disabled/unknown/re-enabled source handling in the webhook |
+| `sources.test.js` | allowlist: unknown chat ignored, admin registration, enable/disable, sequencing |
 | `formats.test.js` | MIME detection, content-type mapping, R2 metadata, `TRANSCRIBE_ON_IMPORT` on/off |
 | `config.test.js` | `wrangler.jsonc` still points at real entrypoint, migrations dir, admin assets, queue + DLQ |
 

@@ -85,11 +85,16 @@ Session mechanics (`src/lib/auth.js`, `src/lib/crypto.js`):
   so `viewer` accounts can authenticate but cannot pass the guard.
 
 Admin routes (all under `/api/admin/`): `dashboard`, `tracks` (list/get/patch/
-delete/retry), `tracks/:id/lyrics` (PUT, manual override), `sources` (+
-`PATCH enabled`, `POST check`), `dropbox/accounts` (+ toggle/disconnect/check,
+delete/retry), `tracks/:id/lyrics` (PUT, manual override), `sources` (`GET`, and
+`POST` to register a chat id — the only way a chat becomes importable; `PATCH
+enabled`, `POST check`), `dropbox/accounts` (+ toggle/disconnect/check,
 `POST dropbox/connect`, `GET dropbox/callback`), `errors` (+ dead letters),
 `telegram/test`, `telegram/webhook` (register), `health`.
 
+`POST /api/admin/sources` body: `{ chat_id, title?, kind? }`. `chat_id` must be a
+numeric Telegram id. It is idempotent by `chat_id`: an existing row is re-enabled
+(without touching `last_sequence`), a new row is inserted with `enabled = 1`.
+Every call is audited as `source.register`.
 ## 4. Telegram intake
 
 `POST /api/telegram/webhook` in `src/routes/telegram.js`:
@@ -102,22 +107,22 @@ delete/retry), `tracks/:id/lyrics` (PUT, manual override), `sources` (+
 4. `extractAudio()` accepts `message` or `channel_post`, and
    `audio | document | voice`. Documents must have an `audio/*` or
    `application/octet-stream` MIME type.
-5. **Source check against D1.** If the chat already has a `sources` row with
-   `enabled = 0`, the update is recorded as `source_disabled` and acknowledged
-   with `{ ok: true, ignored: "source_disabled" }` — no track row, no job, no
-   queue message, and `last_sequence` does not advance. Unknown chats are
-   registered on first audio message with `enabled = 1`.
+5. **Source allowlist, enforced from D1.** The chat must already exist in
+   `sources`. If it does not, the update is recorded as `source_unknown` and
+   acknowledged with `{ ok: true, ignored: "source_unknown" }` — no source row,
+   track, job, or queue message. If it exists with `enabled = 0`, the status is
+   `source_disabled` and the behaviour is otherwise identical. The webhook never
+   registers a chat and never calls Telegram to discover one.
 6. Rejections happen before enqueue and are recorded idempotently as a `failed`
    track row:
    - `file_too_large` — `file_size` > 20 MB (`MAX_IMPORT_BYTES`, matches the Bot
      API download cap).
    - `preview_too_short` — `duration <= PREVIEW_MAX_SECONDS` (default 30 s).
-7. Upsert `sources` by `chat_id` (`channel` or `group`) if it is new.
-8. `UPDATE sources SET last_sequence = last_sequence + 1 ... WHERE id = ? AND
+7. `UPDATE sources SET last_sequence = last_sequence + 1 ... WHERE id = ? AND
    enabled = 1 RETURNING` — the durable per-source order. The repeated `enabled`
    predicate closes the race where an admin disables the source between the check
    and this write; no row means the source was disabled → same acknowledgement.
-9. Insert `tracks` (`status='pending'`, `source_metadata` JSON with file id,
+8. Insert `tracks` (`status='pending'`, `source_metadata` JSON with file id,
    filename, MIME, caption, duration), create a `jobs` row, and
    `IMPORT_QUEUE.send({ jobId, trackId })`.
 
@@ -164,7 +169,7 @@ are deliberately not serialized; there is no cross-source ordering guarantee.
 |---|---|
 | `admins` | Admin accounts; `username` UNIQUE; PBKDF2 hash + salt + iterations; `role`, `disabled` |
 | `sessions` | `token_hash` UNIQUE, `csrf_hash`, `expires_at`, `revoked_at` |
-| `sources` | Telegram chats; `chat_id` UNIQUE; `last_sequence` ordering counter; `access_status/access_error`; `enabled` enforced by the webhook |
+| `sources` | Telegram chats; `chat_id` UNIQUE; `last_sequence` ordering counter; `access_status/access_error`; `enabled` enforced by the webhook. Rows are created only by the admin registration route. |
 | `telegram_updates` | `update_id` PK — webhook dedupe |
 | `tracks` | Catalog rows; status machine; `UNIQUE (source_id, source_sequence)`, `UNIQUE (telegram_chat_id, telegram_message_id)` |
 | `track_storage` | One row per `(track_id, provider, object_key)` with `state`; PK is that triple |

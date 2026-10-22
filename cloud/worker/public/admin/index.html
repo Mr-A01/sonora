@@ -74,7 +74,7 @@ dialog::backdrop{background:#000a}
     </div>
   </section>
 
-  <section id="sources"><h2>Sources</h2><div class="card"><div id="sourceList"></div></div></section>
+  <section id="sources"><h2>Sources</h2><div class="card"><div class="row" style="margin-bottom:12px"><input id="chatId" placeholder="Telegram chat id, e.g. -1001234567890" style="max-width:320px"><input id="chatTitle" placeholder="Label (optional)" style="max-width:220px"><button class="act" id="registerSource">Register source</button></div><p class="muted" style="margin:0 0 12px">Only registered, enabled chats can import audio. Unknown chats are ignored.</p><div id="sourceList"></div></div></section>
   <section id="dropbox"><h2>Dropbox accounts</h2><div class="card"><div class="row"><button class="act" id="connectDropbox">Connect account</button></div><div id="dbxList" style="margin-top:12px"></div></div></section>
   <section id="errors"><h2>Errors</h2><div class="card"><div id="errorList"></div></div></section>
   <section id="health"><h2>Deployed worker health</h2><div class="card"><div class="row"><button class="act" id="runHealth">Run checks</button><button class="act" id="testTg">Test Telegram</button><button class="act" id="setHook">Register webhook</button></div><div id="healthOut" style="margin-top:12px"></div></div></section>

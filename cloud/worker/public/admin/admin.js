@@ -187,8 +187,23 @@ async function loadSources() {
       <button class="act" data-check="${esc(s.id)}">Check access</button></td></tr>`
         )
         .join('')}</table>`
-    : '<p class="muted">No sources yet. Send an audio file to the bot in a channel or group.</p>';
+    : '<p class="muted">No sources yet. Register a chat id above; unknown chats are ignored by the webhook.</p>';
 }
+
+$('#registerSource').addEventListener('click', async () => {
+  const chatId = $('#chatId').value.trim();
+  const title = $('#chatTitle').value.trim();
+  if (!chatId) return alert('Chat id is required');
+  try {
+    const result = await api('/api/admin/sources', { method: 'POST', body: { chat_id: chatId, title: title || null } });
+    if (result.existing) alert('Source already registered and re-enabled.');
+    $('#chatId').value = '';
+    $('#chatTitle').value = '';
+    loadSources();
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
 $('#sourceList').addEventListener('click', async (e) => {
   const btn = e.target.closest('button');

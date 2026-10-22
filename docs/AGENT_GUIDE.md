@@ -109,10 +109,14 @@ which is an intentionally empty fallback.
 5. **Publish only when required storage is `stored`** (`allStored(db, id, ['r2'])`)
    and title, artist, and a non-null duration exist.
 6. **Unknown duration is `NULL`, never `0`.** Such tracks stay `needs_review`.
-7. **A disabled source imports nothing.** `sources.enabled` is checked from D1 in
-   the webhook, before any track row, and again in the sequencing UPDATE. The
-   webhook still answers `200` (`ignored: 'source_disabled'`) so Telegram does not
-   retry. First contact auto-registers a chat as enabled.
+7. **Sources are allowlist-only.** A Telegram chat can import music only after an
+   administrator registers it (`POST /api/admin/sources`). Unknown chats are
+   acknowledged with `200 { ignored: 'source_unknown' }` and produce no source
+   row, track, job, or queue message. Disabled sources behave the same way with
+   `ignored: 'source_disabled'`. Both checks read D1, and the sequencing UPDATE
+   repeats `AND enabled = 1`, so a concurrent disable cannot start an import.
+   The webhook never enrolls a chat on its own and makes no Telegram API call for
+   source discovery.
 8. **Lyrics timing is immutable.** Cleanup models return text per segment id;
    timings are merged back from the original transcription. Plain lyrics are
    never presented as synchronized.
@@ -190,14 +194,16 @@ verification.
 
 ## 8. Known limitations (verified in code)
 
-- `sources.enabled` is enforced by the webhook; a disabled source acknowledges
-  updates with `{ ok: true, ignored: "source_disabled" }` and stores no track.
+- `sources.enabled` is enforced by the webhook, and registration is explicit:
+  unknown chats answer `{ ok: true, ignored: "source_unknown" }` and store
+  nothing. There is no auto-discovery, so an operator must know the chat id.
 - `settings` table exists and is unused.
 - `retryCleanup`, `telegram.getChatMember`, and `telegram.deleteWebhook` are
   exported but not called by any route.
 - Duration probing covers MP3 and FLAC only. M4A, OGG/Opus, and WAV are accepted
   and stored with the correct content type, but resolve to `duration: null` and
-  therefore `needs_review` unless Telegram reported a duration.
+  therefore `needs_review` unless Telegram reported a duration. OGG/Opus
+  granule parsing is **not** implemented.
 - `TRANSCRIBE_ON_IMPORT` is opt-out (`false` disables automatic transcription).
   Embedded SYLT/USLT lyrics are still extracted when it is `false`. Unidentified
   containers (`bin`) are never sent to Whisper.

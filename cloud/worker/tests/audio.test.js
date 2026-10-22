@@ -32,3 +32,23 @@ test('mp3 probing tolerates ID3v2 prefix', () => {
 test('garbage input resolves to null, not a fake duration', () => {
   assert.equal(mp3DurationSeconds(new Uint8Array(500)), null);
 });
+
+test('only MP3 and FLAC report a duration; OGG/Opus/WAV/M4A stay unknown', () => {
+  const ogg = new Uint8Array(200);
+  ogg.set([0x4f, 0x67, 0x67, 0x53], 0); // "OggS" capture pattern
+  const opus = new Uint8Array(200);
+  opus.set([0x4f, 0x67, 0x67, 0x53], 0);
+  const wav = new Uint8Array(200);
+  wav.set([0x52, 0x49, 0x46, 0x46], 0); // "RIFF"
+
+  assert.equal(probeDuration(ogg, 'ogg'), null);
+  assert.equal(probeDuration(opus, 'opus'), null);
+  assert.equal(probeDuration(wav, 'wav'), null);
+  assert.equal(probeDuration(new Uint8Array(200), 'm4a'), null);
+});
+
+test('a corrupt FLAC header returns null instead of a guessed duration', () => {
+  const fake = new Uint8Array(64);
+  fake.set([0x66, 0x4c, 0x61, 0x43], 0); // "fLaC" but zero sample rate
+  assert.equal(probeDuration(fake, 'flac'), null);
+});

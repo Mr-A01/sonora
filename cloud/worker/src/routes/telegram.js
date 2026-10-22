@@ -44,10 +44,15 @@ export async function handleWebhook(request, env) {
     return json({ ok: true, ignored: true });
   }
 
-  // Disabled sources are enforced from D1, the authoritative state, before any
-  // track row exists. Unknown chats are registered on first use and stay enabled.
-  const existing = await findSource(db, audio.chatId);
-  if (existing && !existing.enabled) {
+  // Source access is enforced from D1, the authoritative state, before any track
+  // row exists. Unknown chats are NOT auto-enrolled: a chat becomes importable
+  // only after an administrator registers it via POST /api/admin/sources.
+  const source = await findSource(db, audio.chatId);
+  if (!source) {
+    await markUpdate(db, update.update_id, 'source_unknown');
+    return json({ ok: true, ignored: 'source_unknown' });
+  }
+  if (!source.enabled) {
     await markUpdate(db, update.update_id, 'source_disabled');
     return json({ ok: true, ignored: 'source_disabled' });
   }
@@ -62,7 +67,6 @@ export async function handleWebhook(request, env) {
   }
 
   const ext = detectAudioExtension(audio.mimeType, audio.filename);
-  const source = existing || (await upsertSource(db, audio));
 
   // Ordering is enforced with a durable per-source sequence, not Queue order.
   // The `enabled = 1` predicate is repeated here so a disable that lands between
@@ -142,16 +146,6 @@ async function markUpdate(db, updateId, status) {
 
 async function findSource(db, chatId) {
   return db.prepare('SELECT * FROM sources WHERE chat_id = ?').bind(chatId).first();
-}
-
-/** First contact registers the chat as an enabled source; admins disable it later. */
-async function upsertSource(db, audio) {
-  const id = crypto.randomUUID();
-  await db
-    .prepare(`INSERT INTO sources (id, chat_id, title, kind, enabled) VALUES (?, ?, ?, ?, 1)`)
-    .bind(id, audio.chatId, audio.chatTitle, audio.chatType === 'channel' ? 'channel' : 'group')
-    .run();
-  return { id, chat_id: audio.chatId, enabled: 1, last_sequence: 0 };
 }
 
 /** Idempotent rejection record: repeated updates never re-run work. */

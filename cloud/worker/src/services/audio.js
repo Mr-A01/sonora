@@ -1,7 +1,8 @@
 /**
  * Bounded audio probing with no native dependencies (Workers cannot run ffmpeg).
- * Supports MP3 (ID3v2 + MPEG frame walk), FLAC STREAMINFO, and OGG/Opus granule.
- * Unknown is a real result: callers must not treat it as zero.
+ * Implemented duration parsing: MP3 (ID3v2 offset + MPEG frame walk) and FLAC
+ * (STREAMINFO). Every other container returns null. Unknown is a real result:
+ * callers must not treat it as zero.
  */
 export const PREVIEW_MAX_SECONDS = 30;
 

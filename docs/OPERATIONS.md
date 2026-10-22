@@ -108,6 +108,29 @@ redeploy, so webhook registration and manifest URLs are correct.
 
 ## 6. Telegram webhook
 
+### Source allowlist (required before the first import)
+
+A chat can import music only after it is registered. Unregistered chats are
+acknowledged but ignored (`ignored: "source_unknown"`), so nothing is stored.
+
+Admin UI: **Sources** → enter the numeric chat id (e.g. `-1001234567890`) →
+**Register source**. Or with an authenticated session + CSRF header:
+
+```bash
+curl -X POST https://<worker>/api/admin/sources \
+  -H "Cookie: sonora_session=...; sonora_csrf=..." \
+  -H "x-csrf-token: ..." -H "Origin: https://<worker>" \
+  -H 'content-type: application/json' \
+  -d '{"chat_id":"-1001234567890","title":"Sonora Channel"}'
+```
+
+Registration is idempotent: re-posting an existing chat re-enables it without
+resetting its ordering counter. Find the chat id by forwarding a channel post to
+a bot that echoes `chat.id`, or from the `update` JSON in Worker logs. The webhook
+itself never registers a chat and never calls Telegram for discovery.
+
+### Webhook
+
 Register from the admin **Health** tab ("Register webhook"), which requires a
 live session, or call the API with a session cookie + CSRF header. The Worker
 calls `setWebhook` with `secret_token = TELEGRAM_WEBHOOK_SECRET` and
@@ -231,6 +254,7 @@ npx wrangler d1 execute sonora-cloud --remote \
 | `dropbox_unavailable` in `error_log` | no enabled account / quota | reconnect or check quota |
 | Track stuck `deleting` | provider delete failed | admin Retry or wait for cron |
 | `workers_ai.ok === false` | model id invalid or unavailable | verify the model id in the catalog |
+| Import ignored as `source_unknown` | chat is not registered | register it in admin → Sources |
 | Import ignored as `source_disabled` | source is disabled in D1 | re-enable it in admin → Sources |
 
 ## 13. Limits and plan dependencies
@@ -238,9 +262,9 @@ npx wrangler d1 execute sonora-cloud --remote \
 - Telegram Bot API download cap: 20 MB (hard provider limit).
 - Groq upload cap enforced in code: 25 MB.
 - No `ffmpeg`, no persistent filesystem: duration parsing is limited to
-  MP3/FLAC. M4A, OGG/Opus, and WAV uploads keep the correct content type but
-  resolve to `duration: null`, so they stay `needs_review` unless Telegram
-  reported a duration.
+  MP3/FLAC. OGG/Opus granule parsing is not implemented. M4A, OGG/Opus, and WAV
+  uploads keep the correct content type but resolve to `duration: null`, so they
+  stay `needs_review` unless Telegram reported a duration.
 - Workers AI Whisper accepts bounded payloads; long tracks have no chunking
   strategy implemented.
 - Queues: at-least-once, unordered; ordering is only durable per source.
